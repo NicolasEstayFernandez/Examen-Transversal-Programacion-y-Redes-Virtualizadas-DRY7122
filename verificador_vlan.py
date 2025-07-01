@@ -5,7 +5,7 @@ Script que solicita al usuario un número de VLAN y determina si pertenece
 al rango normal (1-1005) o al rango extendido (1006-4094).
 """
 
-# Definimos los rangos para claridad y fácil mantenimiento.
+# rangos.
 RANGO_NORMAL_INICIO = 1
 RANGO_NORMAL_FIN = 1005
 RANGO_EXTENDIDO_INICIO = 1006
