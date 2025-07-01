@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Script que mide la distancia entre una ciudad de Chile y una de Argentina.
+Script que mide la distancia entre una ciudad de origen y una de destino.
 Utiliza la API de Nominatim (OpenStreetMap) para obtener las coordenadas
 y la fórmula de Haversine para calcular la distancia.
 """
@@ -9,86 +9,77 @@ y la fórmula de Haversine para calcular la distancia.
 import requests
 import math
 
-# Función para obtener las coordenadas (latitud, longitud) de una ciudad
-def obtener_coordenadas(ciudad, pais):
+# La función ahora es más genérica. Solo necesita un lugar para buscar.
+def obtener_coordenadas(lugar):
     """
-    Usa la API de Nominatim para convertir un nombre de ciudad en coordenadas.
+    Usa la API de Nominatim para convertir el nombre de un lugar en coordenadas.
     """
-    # URL de la API de Nominatim. Se añade un User-Agent como buena práctica.
-    url = f"https://nominatim.openstreetmap.org/search?q={ciudad},{pais}&format=json"
+    # URL de la API. La consulta 'q' ahora es simplemente el lugar.
+    url = f"https://nominatim.openstreetmap.org/search?q={lugar}&format=json"
     headers = {
         'User-Agent': 'ExamenDRY7122/1.0 (https://github.com/NicolasEstayFernandez/Examen-Transversal-Programacion-y-Redes-Virtualizadas-DRY7122)'
     }
     
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Esto generará un error si la solicitud HTTP falla
+        response.raise_for_status()
         
         data = response.json()
         
         if data:
-            # Si se encontraron resultados, devuelve la latitud y longitud del primero
             latitud = float(data[0]['lat'])
             longitud = float(data[0]['lon'])
+            # Devolvemos también el nombre completo encontrado por la API para más claridad.
+            nombre_encontrado = data[0]['display_name']
+            print(f"Coordenadas encontradas para '{lugar}': {nombre_encontrado}")
             return latitud, longitud
         else:
-            # Si no se encontró la ciudad
+            print(f"Error: No se pudieron encontrar coordenadas para '{lugar}'.")
             return None
             
     except requests.exceptions.RequestException as e:
         print(f"Error al conectar con la API: {e}")
         return None
 
-# Función para calcular la distancia usando la fórmula de Haversine
+# La función para calcular la distancia no necesita cambios.
 def calcular_distancia(lat1, lon1, lat2, lon2):
     """
     Calcula la distancia en kilómetros entre dos puntos geográficos.
     """
     R = 6371  # Radio de la Tierra en kilómetros
-
-    # Convertir coordenadas de grados a radianes
-    lat1_rad = math.radians(lat1)
-    lon1_rad = math.radians(lon1)
-    lat2_rad = math.radians(lat2)
-    lon2_rad = math.radians(lon2)
-
-    # Diferencias de longitud y latitud
+    lat1_rad, lon1_rad = math.radians(lat1), math.radians(lon1)
+    lat2_rad, lon2_rad = math.radians(lat2), math.radians(lon2)
     dlon = lon2_rad - lon1_rad
     dlat = lat2_rad - lat1_rad
-
-    # Fórmula de Haversine
     a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     distancia = R * c
-
     return distancia
 
 # --- Lógica Principal del Script ---
 if __name__ == "__main__":
     print("--- Calculadora de Distancia entre Ciudades ---")
     
-    # 1. Obtener los nombres de las ciudades del usuario
-    ciudad_chile = input("Ingrese una ciudad de Chile: ")
-    ciudad_argentina = input("Ingrese una ciudad de Argentina: ")
+    # 1. Solicitar "Ciudad de Origen" y "Ciudad de Destino".
+    # Se recomienda al usuario poner "Ciudad, País" para mejores resultados.
+    ciudad_origen = input("Ingrese la Ciudad de Origen (ej: Santiago, Chile): ")
+    ciudad_destino = input("Ingrese la Ciudad de Destino (ej: Mendoza, Argentina): ")
     
-    print(f"\nBuscando coordenadas para {ciudad_chile}, Chile...")
-    coordenadas_chile = obtener_coordenadas(ciudad_chile, "Chile")
+    print("-" * 20) # Separador visual
     
-    print(f"Buscando coordenadas para {ciudad_argentina}, Argentina...")
-    coordenadas_argentina = obtener_coordenadas(ciudad_argentina, "Argentina")
+    coordenadas_origen = obtener_coordenadas(ciudad_origen)
+    coordenadas_destino = obtener_coordenadas(ciudad_destino)
     
     # 2. Verificar que ambas ciudades fueron encontradas
-    if coordenadas_chile and coordenadas_argentina:
-        # Si se encontraron ambas, calcular la distancia
+    if coordenadas_origen and coordenadas_destino:
         distancia_km = calcular_distancia(
-            coordenadas_chile[0], coordenadas_chile[1],
-            coordenadas_argentina[0], coordenadas_argentina[1]
+            coordenadas_origen[0], coordenadas_origen[1],
+            coordenadas_destino[0], coordenadas_destino[1]
         )
         
         # 3. Mostrar el resultado
         print("\n--- RESULTADO ---")
-        print(f"La distancia entre {ciudad_chile} y {ciudad_argentina} es de aproximadamente {round(distancia_km)} km.")
+        print(f"La distancia entre '{ciudad_origen}' y '{ciudad_destino}' es de aproximadamente {round(distancia_km)} km.")
         
     else:
-        # Si una o ambas ciudades no se encontraron
-        print("\nNo se pudo calcular la distancia. Asegúrese de que los nombres de las ciudades sean correctos.")
+        print("\nNo se pudo calcular la distancia. Una o ambas ciudades no fueron encontradas.")
