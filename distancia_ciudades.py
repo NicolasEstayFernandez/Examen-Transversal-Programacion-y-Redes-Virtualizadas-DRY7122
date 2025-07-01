@@ -2,8 +2,8 @@
 
 """
 Script que mide la distancia entre una ciudad de origen y una de destino.
-Muestra la distancia en kilómetros, millas, una duración estimada del viaje 
-y una narrativa descriptiva del viaje.
+Permite al usuario elegir un medio de transporte y calcula la duración del viaje
+basada en esa elección. Muestra la distancia en km, millas y la narrativa del viaje.
 """
 
 import requests
@@ -11,7 +11,13 @@ import math
 
 # --- CONSTANTES ---
 CONVERSION_KM_A_MILLAS = 0.621371
-VELOCIDAD_PROMEDIO_KMH = 80 
+# Usamos un diccionario para almacenar los medios de transporte y sus velocidades
+TRANSPORTES = {
+    "1": ("Auto", 80),
+    "2": ("Avión", 850),
+    "3": ("Bicicleta", 18),
+    "4": ("A pie", 5)
+}
 
 # --- FUNCIONES ---
 def obtener_coordenadas(lugar):
@@ -56,16 +62,15 @@ def calcular_distancia(lat1, lon1, lat2, lon2):
     distancia = R * c
     return distancia
 
-def generar_narrativa(origen, destino, km, millas, horas, minutos):
+def generar_narrativa(origen, destino, km, millas, horas, minutos, transporte, velocidad):
     """
-    Crea un texto descriptivo (narrativa) del viaje.
+    Crea un texto descriptivo (narrativa) del viaje, incluyendo el transporte.
     """
-    # Usamos un f-string de varias líneas para construir el párrafo.
     narrativa = (
-        f"¡Prepara tus maletas para una nueva aventura! Tu viaje por carretera comienza en la ciudad de {origen}.\n"
-        f"Desde allí, te embarcarás en un recorrido que te llevará hasta tu destino final: {destino}.\n\n"
-        f"La distancia total que cubrirás es de {round(km)} kilómetros, lo que equivale a unas {round(millas)} millas.\n"
-        f"Considerando una velocidad promedio de {VELOCIDAD_PROMEDIO_KMH} km/h, se estima que el viaje te tomará alrededor de {horas} horas y {minutos} minutos.\n\n"
+        f"¡Prepara todo para tu próxima aventura! El viaje comenzará en {origen} y te llevará hasta tu destino: {destino}.\n\n"
+        f"Cubrirás una distancia total de {round(km)} kilómetros (aproximadamente {round(millas)} millas).\n"
+        f"Viajando en {transporte.lower()} a una velocidad promedio estimada de {velocidad} km/h, "
+        f"el tiempo de viaje será de alrededor de {horas} horas y {minutos} minutos.\n\n"
         f"¡Que tengas un excelente y seguro viaje!"
     )
     return narrativa
@@ -83,13 +88,26 @@ if __name__ == "__main__":
     coordenadas_destino = obtener_coordenadas(ciudad_destino)
     
     if coordenadas_origen and coordenadas_destino:
+        # Menú para elegir el medio de transporte
+        print("\nSeleccione el medio de transporte:")
+        for key, value in TRANSPORTES.items():
+            print(f"{key}. {value[0]}")
+        
+        opcion_transporte = ""
+        while opcion_transporte not in TRANSPORTES:
+            opcion_transporte = input("Ingrese el número de su opción (1-4): ")
+            if opcion_transporte not in TRANSPORTES:
+                print("Opción no válida. Por favor, elija un número del 1 al 4.")
+        
+        nombre_transporte, velocidad_elegida = TRANSPORTES[opcion_transporte]
+
         # --- CÁLCULOS ---
         distancia_km = calcular_distancia(
             coordenadas_origen[0], coordenadas_origen[1],
             coordenadas_destino[0], coordenadas_destino[1]
         )
         distancia_millas = distancia_km * CONVERSION_KM_A_MILLAS
-        duracion_horas_decimal = distancia_km / VELOCIDAD_PROMEDIO_KMH
+        duracion_horas_decimal = distancia_km / velocidad_elegida
         horas = int(duracion_horas_decimal)
         minutos = int((duracion_horas_decimal - horas) * 60)
         
@@ -97,7 +115,8 @@ if __name__ == "__main__":
         narrativa_del_viaje = generar_narrativa(
             ciudad_origen, ciudad_destino, 
             distancia_km, distancia_millas, 
-            horas, minutos
+            horas, minutos,
+            nombre_transporte, velocidad_elegida
         )
         
         print("\n" + "="*25)
