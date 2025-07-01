@@ -2,18 +2,15 @@
 
 """
 Script que mide la distancia entre una ciudad de origen y una de destino.
-Muestra la distancia en kilómetros, millas y una duración estimada del viaje en auto.
-Utiliza la API de Nominatim (OpenStreetMap) para obtener las coordenadas
-y la fórmula de Haversine para calcular la distancia.
+Muestra la distancia en kilómetros, millas, una duración estimada del viaje 
+y una narrativa descriptiva del viaje.
 """
 
 import requests
 import math
 
 # --- CONSTANTES ---
-# Es una buena práctica definir valores que no cambian como constantes.
 CONVERSION_KM_A_MILLAS = 0.621371
-# Asumimos una velocidad promedio para un viaje largo en auto. Esto es una ESTIMACIÓN.
 VELOCIDAD_PROMEDIO_KMH = 80 
 
 # --- FUNCIONES ---
@@ -59,6 +56,20 @@ def calcular_distancia(lat1, lon1, lat2, lon2):
     distancia = R * c
     return distancia
 
+def generar_narrativa(origen, destino, km, millas, horas, minutos):
+    """
+    Crea un texto descriptivo (narrativa) del viaje.
+    """
+    # Usamos un f-string de varias líneas para construir el párrafo.
+    narrativa = (
+        f"¡Prepara tus maletas para una nueva aventura! Tu viaje por carretera comienza en la ciudad de {origen}.\n"
+        f"Desde allí, te embarcarás en un recorrido que te llevará hasta tu destino final: {destino}.\n\n"
+        f"La distancia total que cubrirás es de {round(km)} kilómetros, lo que equivale a unas {round(millas)} millas.\n"
+        f"Considerando una velocidad promedio de {VELOCIDAD_PROMEDIO_KMH} km/h, se estima que el viaje te tomará alrededor de {horas} horas y {minutos} minutos.\n\n"
+        f"¡Que tengas un excelente y seguro viaje!"
+    )
+    return narrativa
+
 # --- LÓGICA PRINCIPAL DEL SCRIPT ---
 if __name__ == "__main__":
     print("--- Calculadora de Distancia y Duración de Viaje ---")
@@ -73,30 +84,26 @@ if __name__ == "__main__":
     
     if coordenadas_origen and coordenadas_destino:
         # --- CÁLCULOS ---
-        # 1. Calcular distancia en kilómetros (como antes)
         distancia_km = calcular_distancia(
             coordenadas_origen[0], coordenadas_origen[1],
             coordenadas_destino[0], coordenadas_destino[1]
         )
-        
-        # 2. Convertir kilómetros a millas
         distancia_millas = distancia_km * CONVERSION_KM_A_MILLAS
-        
-        # 3. Calcular duración del viaje en horas
         duracion_horas_decimal = distancia_km / VELOCIDAD_PROMEDIO_KMH
-        # Convertir las horas decimales a formato horas y minutos
         horas = int(duracion_horas_decimal)
         minutos = int((duracion_horas_decimal - horas) * 60)
         
-        # --- MOSTRAR RESULTADOS ---
-        print("\n--- RESULTADO DEL VIAJE ---")
-        print(f"Desde: {ciudad_origen}")
-        print(f"Hasta: {ciudad_destino}")
-        print("-" * 25)
-        print(f"Distancia en Kilómetros: {round(distancia_km)} km")
-        print(f"Distancia en Millas:      {round(distancia_millas)} mi")
-        print(f"Duración estimada del viaje en auto: {horas} horas y {minutos} minutos")
-        print(f"(Estimación basada en una velocidad promedio de {VELOCIDAD_PROMEDIO_KMH} km/h)")
+        # --- GENERAR Y MOSTRAR NARRATIVA ---
+        narrativa_del_viaje = generar_narrativa(
+            ciudad_origen, ciudad_destino, 
+            distancia_km, distancia_millas, 
+            horas, minutos
+        )
+        
+        print("\n" + "="*25)
+        print("   NARRATIVA DEL VIAJE")
+        print("="*25 + "\n")
+        print(narrativa_del_viaje)
         
     else:
-        print("\nNo se pudo calcular la distancia. Una o ambas ciudades no fueron encontradas.")
+        print("\nNo se pudo generar la narrativa. Una o ambas ciudades no fueron encontradas.")
