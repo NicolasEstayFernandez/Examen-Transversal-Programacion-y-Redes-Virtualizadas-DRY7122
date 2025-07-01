@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Script que mide la distancia entre una ciudad de origen y una de destino.
-Permite al usuario elegir un medio de transporte y calcula la duración del viaje
-basada en esa elección. Muestra la distancia en km, millas y la narrativa del viaje.
+Script interactivo que mide la distancia entre ciudades.
+Permite al usuario elegir un medio de transporte y calcula la duración del viaje.
+El programa se ejecuta en un bucle y se puede salir ingresando 's'.
 """
 
 import requests
@@ -11,7 +11,6 @@ import math
 
 # --- CONSTANTES ---
 CONVERSION_KM_A_MILLAS = 0.621371
-# Usamos un diccionario para almacenar los medios de transporte y sus velocidades
 TRANSPORTES = {
     "1": ("Auto", 80),
     "2": ("Avión", 850),
@@ -77,52 +76,74 @@ def generar_narrativa(origen, destino, km, millas, horas, minutos, transporte, v
 
 # --- LÓGICA PRINCIPAL DEL SCRIPT ---
 if __name__ == "__main__":
-    print("--- Calculadora de Distancia y Duración de Viaje ---")
     
-    ciudad_origen = input("Ingrese la Ciudad de Origen (ej: Santiago, Chile): ")
-    ciudad_destino = input("Ingrese la Ciudad de Destino (ej: Mendoza, Argentina): ")
-    
-    print("-" * 20)
-    
-    coordenadas_origen = obtener_coordenadas(ciudad_origen)
-    coordenadas_destino = obtener_coordenadas(ciudad_destino)
-    
-    if coordenadas_origen and coordenadas_destino:
-        # Menú para elegir el medio de transporte
-        print("\nSeleccione el medio de transporte:")
-        for key, value in TRANSPORTES.items():
-            print(f"{key}. {value[0]}")
+    # Bucle principal para que el programa se ejecute continuamente
+    while True:
+        print("\n" + "="*50)
+        print("--- Calculadora de Distancia y Duración de Viaje ---")
+        print("(Ingrese 's' en cualquier momento para salir del programa)")
+        print("="*50)
         
-        opcion_transporte = ""
-        while opcion_transporte not in TRANSPORTES:
-            opcion_transporte = input("Ingrese el número de su opción (1-4): ")
-            if opcion_transporte not in TRANSPORTES:
-                print("Opción no válida. Por favor, elija un número del 1 al 4.")
+        ciudad_origen = input("Ingrese la Ciudad de Origen: ")
         
-        nombre_transporte, velocidad_elegida = TRANSPORTES[opcion_transporte]
+        # Condición de salida: si el usuario ingresa 's' o 'S'
+        if ciudad_origen.lower() == 's':
+            print("\nSaliendo del programa. ¡Hasta luego!")
+            break  # Rompe el bucle while y termina el script
+        
+        ciudad_destino = input("Ingrese la Ciudad de Destino: ")
 
-        # --- CÁLCULOS ---
-        distancia_km = calcular_distancia(
-            coordenadas_origen[0], coordenadas_origen[1],
-            coordenadas_destino[0], coordenadas_destino[1]
-        )
-        distancia_millas = distancia_km * CONVERSION_KM_A_MILLAS
-        duracion_horas_decimal = distancia_km / velocidad_elegida
-        horas = int(duracion_horas_decimal)
-        minutos = int((duracion_horas_decimal - horas) * 60)
+        if ciudad_destino.lower() == 's':
+            print("\nSaliendo del programa. ¡Hasta luego!")
+            break
+
+        print("-" * 20)
         
-        # --- GENERAR Y MOSTRAR NARRATIVA ---
-        narrativa_del_viaje = generar_narrativa(
-            ciudad_origen, ciudad_destino, 
-            distancia_km, distancia_millas, 
-            horas, minutos,
-            nombre_transporte, velocidad_elegida
-        )
+        coordenadas_origen = obtener_coordenadas(ciudad_origen)
+        coordenadas_destino = obtener_coordenadas(ciudad_destino)
         
-        print("\n" + "="*25)
-        print("   NARRATIVA DEL VIAJE")
-        print("="*25 + "\n")
-        print(narrativa_del_viaje)
-        
-    else:
-        print("\nNo se pudo generar la narrativa. Una o ambas ciudades no fueron encontradas.")
+        if coordenadas_origen and coordenadas_destino:
+            # Menú para elegir el medio de transporte
+            print("\nSeleccione el medio de transporte:")
+            for key, value in TRANSPORTES.items():
+                print(f"{key}. {value[0]}")
+            
+            opcion_transporte = ""
+            while opcion_transporte not in TRANSPORTES:
+                opcion_transporte = input("Ingrese el número de su opción (1-4): ")
+                if opcion_transporte.lower() == 's':
+                    break # Permite salir también en este punto
+                if opcion_transporte not in TRANSPORTES:
+                    print("Opción no válida. Por favor, elija un número del 1 al 4.")
+            
+            if opcion_transporte.lower() == 's':
+                print("\nSaliendo del programa. ¡Hasta luego!")
+                break
+            
+            nombre_transporte, velocidad_elegida = TRANSPORTES[opcion_transporte]
+
+            # --- CÁLCULOS ---
+            distancia_km = calcular_distancia(
+                coordenadas_origen[0], coordenadas_origen[1],
+                coordenadas_destino[0], coordenadas_destino[1]
+            )
+            distancia_millas = distancia_km * CONVERSION_KM_A_MILLAS
+            duracion_horas_decimal = distancia_km / velocidad_elegida
+            horas = int(duracion_horas_decimal)
+            minutos = int((duracion_horas_decimal - horas) * 60)
+            
+            # --- GENERAR Y MOSTRAR NARRATIVA ---
+            narrativa_del_viaje = generar_narrativa(
+                ciudad_origen, ciudad_destino, 
+                distancia_km, distancia_millas, 
+                horas, minutos,
+                nombre_transporte, velocidad_elegida
+            )
+            
+            print("\n" + "="*25)
+            print("   NARRATIVA DEL VIAJE")
+            print("="*25 + "\n")
+            print(narrativa_del_viaje)
+            
+        else:
+            print("\nNo se pudo generar la narrativa. Una o ambas ciudades no fueron encontradas.")
